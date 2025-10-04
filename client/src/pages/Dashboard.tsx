@@ -1,35 +1,47 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/http";
 import { getTodayPotd, type Potd } from "../api/potd";
+import "./Dashboard.css";
 
 type Props = { onLogout: () => void };
+
+type Completion = {
+  site: "leetcode" | "gfg";
+  date: string;
+  problemSlug: string;
+  problemTitle?: string;
+};
 
 type MeResp = {
   user: { email: string; username?: string; coins: number; streak: number; lastStreakDay?: string };
   today: string;
-  completions: Array<{ site: "leetcode" | "gfg"; date: string; problemSlug: string; problemTitle?: string }>;
+  completions: Completion[];
 };
+
+type Toast = { id: number; kind: "success" | "error" | "info"; text: string };
 
 export default function Dashboard({ onLogout }: Props) {
   const [me, setMe] = useState<MeResp | null>(null);
   const [potd, setPotd] = useState<Potd | null>(null);
   const [loading, setLoading] = useState(true);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => { void loadAll(); }, []);
+  useEffect(() => {
+    void loadAll();
+  }, []);
 
   async function loadAll() {
     setLoading(true);
-    setMsg(null);
     try {
       const [meResp, potdResp] = await Promise.all([
         api<MeResp>("/user/me"),
-        getTodayPotd().catch(() => null)
+        getTodayPotd().catch(() => null),
       ]);
       setMe(meResp);
       setPotd(potdResp);
     } catch (e: any) {
-      setMsg(e?.message || "Failed to load");
+      pushToast("error", e?.message || "Failed to load");
     } finally {
       setLoading(false);
     }
@@ -39,128 +51,228 @@ export default function Dashboard({ onLogout }: Props) {
     try {
       await api("/submit", {
         method: "POST",
-        body: JSON.stringify({ site, problem: { slug, title } })
+        body: JSON.stringify({ site, problem: { slug, title } }),
       });
+      pushToast("success", `Marked ${site.toUpperCase()} POTD as done!`);
       await loadAll();
     } catch (e: any) {
-      setMsg(e?.message || "Could not submit completion");
+      pushToast("error", e?.message || "Could not mark as done");
     }
   }
 
-  function hasDone(site: "leetcode" | "gfg") {
-    return me?.completions?.some(c => c.site === site) ?? false;
+  function pushToast(kind: Toast["kind"], text: string) {
+    const id = Date.now() + Math.random();
+    setToasts((t) => [...t, { id, kind, text }]);
+    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
   }
 
-  if (loading || !me) {
-    return <div style={styles.container}>Loading…</div>;
-  }
-
-  const doneLC = hasDone("leetcode");
-  const doneGFG = hasDone("gfg");
+  const doneLC = useMemo(() => me?.completions?.some((c) => c.site === "leetcode") ?? false, [me]);
+  const doneGFG = useMemo(() => me?.completions?.some((c) => c.site === "gfg") ?? false, [me]);
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <h2 style={{ margin: 0 }}>POTD</h2>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={loadAll} style={styles.secondaryBtn}>Refresh</button>
-          <button onClick={onLogout} style={styles.primaryBtn}>Logout</button>
+    <div className="dash-root">
+      <header className="dash-header">
+        <div className="brand">
+          <span className="logo-dot" />
+          <span className="brand-text">POTD</span>
+        </div>
+        <div className="header-actions">
+          <button
+            className="btn ghost"
+            onClick={async () => {
+              setRefreshing(true);
+              await loadAll();
+              setRefreshing(false);
+              pushToast("info", "Refreshed");
+            }}
+            disabled={refreshing}
+            aria-busy={refreshing}
+          >
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+          <button className="btn" onClick={onLogout}>Logout</button>
         </div>
       </header>
 
-      <section style={styles.stats}>
-        <div style={styles.statBox}>Coins: <b>{me.user.coins}</b></div>
-        <div style={styles.statBox}>Streak: <b>{me.user.streak}</b></div>
-        <div style={styles.statBox}>Today: <b>{me.today}</b></div>
-      </section>
+      {loading ? (
+        <Skeleton />
+      ) : me ? (
+        <>
+          <section className="stats">
+            <StatCard label="Coins" value={me.user.coins} />
+            <StreakRing streak={me.user.streak} />
+            <StatCard label="Today" value={me.today} mono />
+          </section>
 
-      {potd ? (
-        <section style={{ marginTop: 12 }}>
-          {/* LeetCode card */}
-          {potd.leetcode && (
-            <div style={styles.card}>
-              <div style={styles.cardTop}>
-                <div style={styles.platform}>
-                  <strong>LeetCode</strong>
-                  {doneLC && <span style={styles.badge}>Done</span>}
-                </div>
-                <a
-                    href={`https://leetcode.com/problems/${potd.leetcode.slug}/`}
-                    target="_blank" rel="noreferrer"
-                    style={styles.link}
-                >
-                  Open
-                </a>
-              </div>
-              <div style={{ marginTop: 6 }}>{potd.leetcode.title}</div>
-              <div style={styles.cardActions}>
-                <button
-                  disabled={doneLC}
-                  onClick={() => markDone("leetcode", potd.leetcode!.slug, potd.leetcode!.title)}
-                  style={doneLC ? styles.disabledBtn : styles.actionBtn}
-                >
-                  {doneLC ? "Marked" : "Mark as done"}
-                </button>
-              </div>
-            </div>
-          )}
+          <section className="cards">
+            <PlatformCard
+              platform="LeetCode"
+              done={doneLC}
+              potd={potd?.leetcode}
+              onOpen={() =>
+                potd?.leetcode &&
+                window.open(`https://leetcode.com/problems/${potd.leetcode.slug}/`, "_blank", "noopener,noreferrer")
+              }
+              onMark={() =>
+                potd?.leetcode &&
+                markDone("leetcode", potd.leetcode.slug, potd.leetcode.title)
+              }
+            />
+            <PlatformCard
+              platform="GFG"
+              done={doneGFG}
+              potd={potd?.gfg}
+              onOpen={() =>
+                potd?.gfg &&
+                window.open(`https://www.geeksforgeeks.org/${potd.gfg.slug}/`, "_blank", "noopener,noreferrer")
+              }
+              onMark={() =>
+                potd?.gfg && markDone("gfg", potd.gfg.slug, potd.gfg.title)
+              }
+            />
+          </section>
 
-          {/* GFG card */}
-          {potd.gfg && (
-            <div style={styles.card}>
-              <div style={styles.cardTop}>
-                <div style={styles.platform}>
-                  <strong>GFG</strong>
-                  {doneGFG && <span style={styles.badge}>Done</span>}
-                </div>
-                <a
-                    href={`https://www.geeksforgeeks.org/${potd.gfg.slug}/`}
-                    target="_blank" rel="noreferrer"
-                    style={styles.link}
-                >
-                  Open
-                </a>
-              </div>
-              <div style={{ marginTop: 6 }}>{potd.gfg.title}</div>
-              <div style={styles.cardActions}>
-                <button
-                  disabled={doneGFG}
-                  onClick={() => markDone("gfg", potd.gfg!.slug, potd.gfg!.title)}
-                  style={doneGFG ? styles.disabledBtn : styles.actionBtn}
-                >
-                  {doneGFG ? "Marked" : "Mark as done"}
-                </button>
-              </div>
-            </div>
+          {!potd?.leetcode && !potd?.gfg && (
+            <EmptyState
+              title="No POTD right now"
+              subtitle="We couldn't fetch today's problems yet. Hit refresh or try again in a moment."
+              actionLabel="Refresh"
+              onAction={() => loadAll()}
+            />
           )}
-
-          {/* If neither source available */}
-          {!potd.leetcode && !potd.gfg && (
-            <p style={{ marginTop: 8 }}>Sorry, no POTD available right now.</p>
-          )}
-        </section>
+        </>
       ) : (
-        <p style={{ marginTop: 8 }}>Sorry, no POTD available right now.</p>
+        <EmptyState
+          title="Not loaded"
+          subtitle="Could not fetch your account. Try refreshing."
+          actionLabel="Refresh"
+          onAction={() => loadAll()}
+        />
       )}
 
-      {msg && <p style={{ marginTop: 12, color: "#ff4d4f" }}>{msg}</p>}
+      {/* Toasts */}
+      <div className="toast-wrap">
+        {toasts.map((t) => (
+          <div key={t.id} className={`toast ${t.kind}`}>
+            {t.text}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-const styles: Record<string, React.CSSProperties> = {
-  container: { maxWidth: 640, margin: "40px auto", fontFamily: "system-ui, sans-serif" },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
-  stats: { display: "flex", gap: 12, marginBottom: 8, flexWrap: "wrap" },
-  statBox: { background: "#0b0b0bff", borderRadius: 8, padding: "6px 10px" },
-  card: { border: "1px solid #eee", borderRadius: 10, padding: 12, marginTop: 12 },
-  cardTop: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  platform: { display: "flex", gap: 8, alignItems: "center" },
-  badge: { background: "#e6ffed", color: "#1a7f37", fontSize: 12, padding: "2px 6px", borderRadius: 999 },
-  link: { padding: "6px 10px", borderRadius: 8, background: "#222", color: "#fff", textDecoration: "none" },
-  cardActions: { marginTop: 10, display: "flex", gap: 8 },
-  actionBtn: { padding: "6px 10px", borderRadius: 8, background: "#1677ff", border: 0, color: "#fff", cursor: "pointer" },
-  disabledBtn: { padding: "6px 10px", borderRadius: 8, background: "#ccc", border: 0, color: "#555", cursor: "not-allowed" },
-  primaryBtn: { padding: "6px 10px", borderRadius: 8, background: "#111", border: 0, color: "#fff", cursor: "pointer" },
-  secondaryBtn: { padding: "6px 10px", borderRadius: 8, background: "#eaeaea", border: 0, color: "#111", cursor: "pointer" }
-};
+/* ---------------- Components ---------------- */
+
+function Skeleton() {
+  return (
+    <div className="skeleton">
+      <div className="s-row" />
+      <div className="s-grid">
+        <div className="s-card" />
+        <div className="s-card" />
+        <div className="s-card" />
+      </div>
+      <div className="s-grid">
+        <div className="s-wide" />
+        <div className="s-wide" />
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ label, value, mono = false }: { label: string; value: string | number; mono?: boolean }) {
+  return (
+    <div className="stat-card glass">
+      <div className="stat-label">{label}</div>
+      <div className={`stat-value ${mono ? "mono" : ""}`}>{value}</div>
+    </div>
+  );
+}
+
+function StreakRing({ streak }: { streak: number }) {
+  // cap the ring fill to a reasonable window (e.g., 30)
+  const cap = 30;
+  const pct = Math.min(100, Math.round((Math.min(streak, cap) / cap) * 100));
+  const style = { ["--fill" as any]: `${pct}%` };
+  return (
+    <div className="streak-card glass">
+      <div className="ring" style={style as any}>
+        <div className="ring-inner">
+          <div className="ring-number">{streak}</div>
+          <div className="ring-label">streak</div>
+        </div>
+      </div>
+      <div className="ring-caption">Max ring shows 30-day window</div>
+    </div>
+  );
+}
+
+function PlatformCard({
+  platform,
+  potd,
+  done,
+  onOpen,
+  onMark,
+}: {
+  platform: "LeetCode" | "GFG";
+  potd?: { title: string; slug: string };
+  done: boolean;
+  onOpen: () => void;
+  onMark: () => void;
+}) {
+  return (
+    <div className="card glass">
+      <div className="card-top">
+        <div className="title-wrap">
+          <div className="platform">
+            <span className={`dot ${platform === "LeetCode" ? "lc" : "gfg"}`} />
+            <span className="platform-name">{platform}</span>
+            {done && <span className="badge">Done</span>}
+          </div>
+          <div className="problem-title" title={potd?.title || ""}>
+            {potd?.title || "No problem yet"}
+          </div>
+        </div>
+        <div className="actions">
+          <button className="btn ghost" onClick={onOpen} disabled={!potd}>
+            Open
+          </button>
+          <button className="btn" onClick={onMark} disabled={!potd || done}>
+            {done ? "Marked" : "Mark as done"}
+          </button>
+        </div>
+      </div>
+      {potd && (
+        <div className="slug">
+          <span className="slug-label">Slug:</span> <code>{potd.slug}</code>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmptyState({
+  title,
+  subtitle,
+  actionLabel,
+  onAction,
+}: {
+  title: string;
+  subtitle?: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <div className="empty">
+      <div className="empty-emoji">🫥</div>
+      <div className="empty-title">{title}</div>
+      {subtitle && <div className="empty-sub">{subtitle}</div>}
+      {actionLabel && onAction && (
+        <button className="btn" onClick={onAction} style={{ marginTop: 10 }}>
+          {actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
