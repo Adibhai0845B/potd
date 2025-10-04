@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "POTD Coins & Streaks",
+  "version": "0.3.0",
+  "description": "Auto-mark POTD completions for LeetCode & GFG and sync with your backend (cookie sessions).",
+  "permissions": ["storage", "notifications"],
+  "host_permissions": [
+    "http://localhost:4000/*",
+    "https://leetcode.com/*",
+    "https://www.geeksforgeeks.org/*"
+  ],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_popup": "popup.html", "default_title": "POTD" },
+  "options_page": "options.html",
+  "content_scripts": [
+    { "matches": ["https://leetcode.com/*"], "js": ["content/leetcode.js"], "run_at": "document_idle" },
+    { "matches": ["https://www.geeksforgeeks.org/*"], "js": ["content/gfg.js"], "run_at": "document_idle" }
+  ]
+}

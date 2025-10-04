@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>POTD</title>
+  <style>
+    body { font-family: system-ui, sans-serif; min-width: 240px; background: #202020; color: #fff; padding: 12px; }
+    .pill { padding: 2px 6px; border-radius: 6px; font-size: 12px; display: inline-block; }
+    .ok { background: #2e7d32; } .warn { background: #c62828; }
+    button { width: 100%; padding: 8px; margin-top: 8px; border: 0; border-radius: 6px; background: #444; color: #fff; }
+    button:hover { background: #666; }
+  </style>
+</head>
+<body>
+  <h3>POTD Extension</h3>
+  <div>API: <span id="api" class="pill warn">n/a</span></div>
+  <button id="openOptions">Options</button>
+  <button id="openApp">Open Web App</button>
+  <script src="popup.js"></script>
+</body>
+</html>
