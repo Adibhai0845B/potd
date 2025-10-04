@@ -8,7 +8,7 @@ async function load() {
 async function save() {
   const API_BASE = document.getElementById("api").value.trim();
   const originsRaw = document.getElementById("origins").value.trim();
-  const allowedAppOrigins = originsRaw.split(",").map(s => s.trim()).filter(Boolean);
+  const allowedAppOrigins = originsRaw.split(",").map((s) => s.trim()).filter(Boolean);
   await new Promise((r) => chrome.storage.local.set({ API_BASE, allowedAppOrigins }, r));
   chrome.runtime.sendMessage({ type: "SET_CONFIG", patch: { API_BASE, allowedAppOrigins } }, () => {});
   alert("Saved!");

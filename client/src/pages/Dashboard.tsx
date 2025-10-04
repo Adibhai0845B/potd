@@ -24,7 +24,7 @@ export default function Dashboard({ onLogout }: Props) {
     try {
       const [meResp, potdResp] = await Promise.all([
         api<MeResp>("/user/me"),
-        getTodayPotd().catch(() => null) // tolerate missing GFG/LC temporarily
+        getTodayPotd().catch(() => null)
       ]);
       setMe(meResp);
       setPotd(potdResp);
