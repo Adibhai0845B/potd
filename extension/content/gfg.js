@@ -1,15 +1,16 @@
-// GFG content script: injects page-context script (external file) + DOM fallback (no inline scripts).
+// GFG content script: inject external page-context hook + DOM fallback (CSP-safe).
 
 let alreadySent = false;
 
 function getSlugFromUrl() {
   const parts = location.pathname.split("/").filter(Boolean);
   if (!parts.length) return null;
-  const idx = parts[0] === "problems" ? 1 : parts.length - 1;
-  let slug = parts[idx] || null;
-  if (slug && slug.toLowerCase() === "problems") slug = parts[idx + 1] || null;
-  if (slug) slug = slug.replace(/[?#].*$/, "").replace(/\/+$/, "");
-  return slug || null;
+
+  if (parts[0] === "problems") {
+    return (parts[1] || "").replace(/[?#].*$/, "").replace(/\/+$/, "") || null;
+  }
+  const last = parts[parts.length - 1] || "";
+  return last.replace(/[?#].*$/, "").replace(/\/+$/, "") || null;
 }
 
 function sendCompletionOnce() {
@@ -23,7 +24,7 @@ function sendCompletionOnce() {
   });
 }
 
-// Inject external page-context script (allowed by CSP)
+// Inject external page-context script (CSP-safe)
 (function injectExternal() {
   const url = chrome.runtime.getURL("content/gfg_injected.js");
   const s = document.createElement("script");
@@ -38,7 +39,13 @@ window.addEventListener("message", (ev) => {
 }, false);
 
 // DOM fallback
-const KEYWORDS = ["Correct Answer", "All test cases passed", "All testcases passed", "Accepted"];
+const KEYWORDS = [
+  "Correct Answer",
+  "All test cases passed",
+  "All testcases passed",
+  "Accepted",
+  "Congratulations"
+];
 function tryDomDetect(node) {
   if (alreadySent) return;
   const text = (node?.innerText || node?.textContent || "").trim();

@@ -13,7 +13,15 @@ type Completion = {
 };
 
 type MeResp = {
-  user: { email: string; username?: string; coins: number; streak: number; lastStreakDay?: string };
+  user: {
+    email: string;
+    username?: string;
+    coins: number;
+    streak: number;
+    lastStreakDay?: string;
+    leetcodeUsername?: string;
+    gfgUsername?: string;
+  };
   today: string;
   completions: Completion[];
 };
@@ -21,11 +29,40 @@ type MeResp = {
 type Toast = { id: number; kind: "success" | "error" | "info"; text: string };
 
 export default function Dashboard({ onLogout }: Props) {
+  // Profile form state
+  const [leetcodeUsername, setLeetcodeUsername] = useState("");
+  const [gfgUsername, setGfgUsername] = useState("");
+  const [profileLoading, setProfileLoading] = useState(false);
   const [me, setMe] = useState<MeResp | null>(null);
   const [potd, setPotd] = useState<Potd | null>(null);
   const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+
+  // When user data loads, set profile fields
+  useEffect(() => {
+    if (me?.user) {
+      setLeetcodeUsername(me.user.leetcodeUsername || "");
+      setGfgUsername(me.user.gfgUsername || "");
+    }
+  }, [me?.user]);
+
+  async function saveProfile(e?: React.FormEvent) {
+    if (e) e.preventDefault();
+    setProfileLoading(true);
+    try {
+      await api("/user/profile", {
+        method: "PATCH",
+        body: JSON.stringify({ leetcodeUsername, gfgUsername }),
+      });
+      pushToast("success", "Profile updated!");
+      await loadAll();
+    } catch (e: any) {
+      pushToast("error", e?.message || "Could not update profile");
+    } finally {
+      setProfileLoading(false);
+    }
+  }
 
   useEffect(() => {
     void loadAll();
@@ -98,6 +135,37 @@ export default function Dashboard({ onLogout }: Props) {
         <Skeleton />
       ) : me ? (
         <>
+          {/* Profile section */}
+          <section className="profile glass" style={{ marginBottom: 24, padding: 16, maxWidth: 400 }}>
+            <h3 style={{ margin: 0, marginBottom: 8 }}>Profile</h3>
+            <form onSubmit={saveProfile} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label>
+                LeetCode Username:
+                <input
+                  type="text"
+                  value={leetcodeUsername}
+                  onChange={e => setLeetcodeUsername(e.target.value)}
+                  placeholder="LeetCode username"
+                  style={{ width: "100%" }}
+                  autoComplete="username"
+                />
+              </label>
+              <label>
+                GFG Username:
+                <input
+                  type="text"
+                  value={gfgUsername}
+                  onChange={e => setGfgUsername(e.target.value)}
+                  placeholder="GFG username"
+                  style={{ width: "100%" }}
+                  autoComplete="username"
+                />
+              </label>
+              <button className="btn" type="submit" disabled={profileLoading} style={{ marginTop: 8 }}>
+                {profileLoading ? "Saving..." : "Save Profile"}
+              </button>
+            </form>
+          </section>
           <section className="stats">
             <StatCard label="Coins" value={me.user.coins} />
             <StreakRing streak={me.user.streak} />
@@ -113,10 +181,6 @@ export default function Dashboard({ onLogout }: Props) {
                 potd?.leetcode &&
                 window.open(`https://leetcode.com/problems/${potd.leetcode.slug}/`, "_blank", "noopener,noreferrer")
               }
-              onMark={() =>
-                potd?.leetcode &&
-                markDone("leetcode", potd.leetcode.slug, potd.leetcode.title)
-              }
             />
             <PlatformCard
               platform="GFG"
@@ -125,9 +189,6 @@ export default function Dashboard({ onLogout }: Props) {
               onOpen={() =>
                 potd?.gfg &&
                 window.open(`https://www.geeksforgeeks.org/${potd.gfg.slug}/`, "_blank", "noopener,noreferrer")
-              }
-              onMark={() =>
-                potd?.gfg && markDone("gfg", potd.gfg.slug, potd.gfg.title)
               }
             />
           </section>
@@ -213,13 +274,11 @@ function PlatformCard({
   potd,
   done,
   onOpen,
-  onMark,
 }: {
   platform: "LeetCode" | "GFG";
   potd?: { title: string; slug: string };
   done: boolean;
   onOpen: () => void;
-  onMark: () => void;
 }) {
   return (
     <div className="card glass">
@@ -237,9 +296,6 @@ function PlatformCard({
         <div className="actions">
           <button className="btn ghost" onClick={onOpen} disabled={!potd}>
             Open
-          </button>
-          <button className="btn" onClick={onMark} disabled={!potd || done}>
-            {done ? "Marked" : "Mark as done"}
           </button>
         </div>
       </div>

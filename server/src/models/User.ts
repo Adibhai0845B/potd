@@ -6,7 +6,9 @@ const userSchema = new Schema({
   passwordHash: String,
   coins: { type: Number, default: 0 },
   streak: { type: Number, default: 0 },
-  lastStreakDay: { type: String, default: "" }
+  lastStreakDay: { type: String, default: "" },
+  leetcodeUsername: { type: String, default: "" },
+  gfgUsername: { type: String, default: "" }
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

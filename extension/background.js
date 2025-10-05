@@ -13,13 +13,21 @@ function getAllConfig() {
 }
 
 function notify(title, message) {
-  if (!chrome.notifications) return;
-  chrome.notifications.create({
-    type: "basic",
-    iconUrl: "icons/icon128.png",
-    title,
-    message
-  });
+  const iconUrl = chrome.runtime.getURL("icons/icon128.png");
+  try {
+    chrome.notifications.create(
+      {
+        type: "basic",
+        iconUrl,
+        title,
+        message
+      },
+      () => {
+        // swallow icon errors
+        // (older Chrome sometimes complains; this fallback keeps it quiet)
+      }
+    );
+  } catch (_) {}
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -30,7 +38,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       try {
         const res = await fetch(`${API_BASE}/submit`, {
           method: "POST",
-          credentials: "include", // use cookie session
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(msg.payload)
         });
