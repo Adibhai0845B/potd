@@ -11,11 +11,9 @@ export async function checkAndAwardPotdCompletions() {
   const date = getTodayKey();
   const potd = await Potd.findOne({ date }).lean();
   if (!potd) return;
-
   const users = await User.find({}).lean();
   for (const user of users) {
-    // LeetCode
-    if (
+    if(
       user.leetcodeUsername &&
       potd.leetcode &&
       typeof potd.leetcode.slug === "string" &&
