@@ -77,6 +77,15 @@ export default function Dashboard({ onLogout }: Props) {
       ]);
       setMe(meResp);
       setPotd(potdResp);
+
+      // Automatically mark as done for LeetCode
+      if (potdResp?.leetcode && !meResp.completions.some(c => c.site === "leetcode")) {
+        await markDone("leetcode", potdResp.leetcode.slug, potdResp.leetcode.title);
+      }
+      // Automatically mark as done for GFG
+      if (potdResp?.gfg && !meResp.completions.some(c => c.site === "gfg")) {
+        await markDone("gfg", potdResp.gfg.slug, potdResp.gfg.title);
+      }
     } catch (e: any) {
       pushToast("error", e?.message || "Failed to load");
     } finally {
