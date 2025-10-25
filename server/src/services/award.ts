@@ -30,6 +30,12 @@ export async function recordCompletionAndAward(
     }
   }
 
+  // Get the user's platform username
+  const user = await User.findById(userId).lean();
+  if (!user) throw new Error("User not found");
+  const platformUsername = site === "leetcode" ? user.leetcodeUsername : user.gfgUsername;
+  if (!platformUsername) throw new Error(`No ${site} username set for user`);
+
   const created = await Completion.findOneAndUpdate(
     { userId, date, site },
     {
@@ -39,6 +45,7 @@ export async function recordCompletionAndAward(
         site,
         problemSlug: submittedSlug,
         problemTitle: problem.title || "",
+        platformUsername,
         awarded: false,
       },
     },

@@ -25,11 +25,33 @@ r.patch("/profile", sessionAuth_1.sessionRequired, async (req, res) => {
     if (!leetcodeUsername && !gfgUsername) {
         return res.status(400).json({ error: "No username provided" });
     }
+    // Check if user has any completions with current usernames
+    const currentUser = await User_1.default.findById(userId).lean();
+    if (!currentUser)
+        return res.status(404).json({ error: "User not found" });
     const update = {};
-    if (typeof leetcodeUsername === "string")
-        update.leetcodeUsername = leetcodeUsername.trim();
-    if (typeof gfgUsername === "string")
-        update.gfgUsername = gfgUsername.trim();
+    if (typeof leetcodeUsername === "string") {
+        const newLeetUsername = leetcodeUsername.trim();
+        if (currentUser.leetcodeUsername && currentUser.leetcodeUsername !== newLeetUsername) {
+            // Check if there are any completions with the current leetcode username
+            const hasCompletions = await Completion_1.default.findOne({ userId, site: "leetcode", platformUsername: currentUser.leetcodeUsername }).lean();
+            if (hasCompletions) {
+                return res.status(400).json({ error: "Cannot change LeetCode username after earning points with it" });
+            }
+        }
+        update.leetcodeUsername = newLeetUsername;
+    }
+    if (typeof gfgUsername === "string") {
+        const newGfgUsername = gfgUsername.trim();
+        if (currentUser.gfgUsername && currentUser.gfgUsername !== newGfgUsername) {
+            // Check if there are any completions with the current gfg username
+            const hasCompletions = await Completion_1.default.findOne({ userId, site: "gfg", platformUsername: currentUser.gfgUsername }).lean();
+            if (hasCompletions) {
+                return res.status(400).json({ error: "Cannot change GFG username after earning points with it" });
+            }
+        }
+        update.gfgUsername = newGfgUsername;
+    }
     const user = await User_1.default.findByIdAndUpdate(userId, update, { new: true, fields: "email username leetcodeUsername gfgUsername coins streak lastStreakDay" }).lean();
     res.json({ user });
 });

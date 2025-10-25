@@ -76,7 +76,7 @@ export default function Dashboard({ onLogout }: Props) {
       setLoading(false);
     }
   }
-  function pushToast(kind: Toast["kind"], text: string) {
+  function pushToast(kind: Toast["kind"],text:string) {
     const id = Date.now() + Math.random();
     setToasts((t)=>[...t, { id, kind, text }]);
     setTimeout(()=>setToasts((t) => t.filter((x) => x.id !== id)), 3000);

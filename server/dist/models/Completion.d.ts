@@ -1,6 +1,7 @@
 import mongoose, { Types } from "mongoose";
 declare const _default: mongoose.Model<{
     createdAt: NativeDate;
+    platformUsername: string;
     awarded: boolean;
     date?: string | null;
     userId?: {
@@ -17,6 +18,7 @@ declare const _default: mongoose.Model<{
     site?: "leetcode" | "gfg" | null;
 }, {}, {}, {}, mongoose.Document<unknown, {}, {
     createdAt: NativeDate;
+    platformUsername: string;
     awarded: boolean;
     date?: string | null;
     userId?: {
@@ -33,6 +35,7 @@ declare const _default: mongoose.Model<{
     site?: "leetcode" | "gfg" | null;
 }, {}, mongoose.DefaultSchemaOptions> & {
     createdAt: NativeDate;
+    platformUsername: string;
     awarded: boolean;
     date?: string | null;
     userId?: {
@@ -53,6 +56,7 @@ declare const _default: mongoose.Model<{
     __v: number;
 }, mongoose.Schema<any, mongoose.Model<any, any, any, any, any, any>, {}, {}, {}, {}, mongoose.DefaultSchemaOptions, {
     createdAt: NativeDate;
+    platformUsername: string;
     awarded: boolean;
     date?: string | null;
     userId?: {
@@ -69,6 +73,7 @@ declare const _default: mongoose.Model<{
     site?: "leetcode" | "gfg" | null;
 }, mongoose.Document<unknown, {}, mongoose.FlatRecord<{
     createdAt: NativeDate;
+    platformUsername: string;
     awarded: boolean;
     date?: string | null;
     userId?: {
@@ -85,6 +90,7 @@ declare const _default: mongoose.Model<{
     site?: "leetcode" | "gfg" | null;
 }>, {}, mongoose.ResolveSchemaOptions<mongoose.DefaultSchemaOptions>> & mongoose.FlatRecord<{
     createdAt: NativeDate;
+    platformUsername: string;
     awarded: boolean;
     date?: string | null;
     userId?: {

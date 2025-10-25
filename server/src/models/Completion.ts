@@ -5,6 +5,7 @@ const completionSchema = new Schema({
   site:{type:String, enum: ["leetcode", "gfg"] },
   problemSlug:String,
   problemTitle:String,
+  platformUsername: { type: String, required: true },
   awarded:{type: Boolean, default: false },
   createdAt:{type:Date,default:Date.now}
 });

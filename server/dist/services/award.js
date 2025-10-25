@@ -32,6 +32,13 @@ async function recordCompletionAndAward(userId, site, problem) {
             throw new Error(`Not the POTD (${site}): expected ${todaysSlug}, got ${submittedSlug}`);
         }
     }
+    // Get the user's platform username
+    const user = await User_1.default.findById(userId).lean();
+    if (!user)
+        throw new Error("User not found");
+    const platformUsername = site === "leetcode" ? user.leetcodeUsername : user.gfgUsername;
+    if (!platformUsername)
+        throw new Error(`No ${site} username set for user`);
     const created = await Completion_1.default.findOneAndUpdate({ userId, date, site }, {
         $setOnInsert: {
             userId,
@@ -39,6 +46,7 @@ async function recordCompletionAndAward(userId, site, problem) {
             site,
             problemSlug: submittedSlug,
             problemTitle: problem.title || "",
+            platformUsername,
             awarded: false,
         },
     }, { upsert: true, new: true });
