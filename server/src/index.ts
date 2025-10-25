@@ -15,15 +15,16 @@ import { schedulePotdJob } from "./jobs/potdJob";
   const MONGO_URI = process.env.MONGO_URI!;
   await mongoose.connect(MONGO_URI);
   const app = express();
-  const CLIENT_WEB = process.env.CLIENT_ORIGIN || "http://localhost:5173";
-  const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN || "https://potd-opal.vercel.app";
   // CORS for web + extension
   app.use(
     cors({
       origin: (origin, cb) => {
         if (!origin) return cb(null, true);
         if (origin.startsWith("chrome-extension://")) return cb(null, true);
-        const allowed = [CLIENT_WEB];
+        const allowed = ["http://localhost:5173", "https://potd-opal.vercel.app"];
+        const CLIENT_WEB = process.env.CLIENT_ORIGIN;
+        const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN;
+        if (CLIENT_WEB) allowed.push(CLIENT_WEB);
         if (EXTENSION_ORIGIN) allowed.push(EXTENSION_ORIGIN);
         if (allowed.includes(origin)) return cb(null, true);
         return cb(null, false);
@@ -52,11 +53,11 @@ import { schedulePotdJob } from "./jobs/potdJob";
     })
   );
   app.get("/health", (_req, res) => res.json({ ok: true }));
-  app.use("/auth", authRoutes);
-  app.use("/submit", submitRoutes);
-  app.use("/user", userRoutes);
-  app.use("/potd", potdRoutes);
-  app.use("/potd/admin", potdAdmin);
+  app.use("/auth",authRoutes);
+  app.use("/submit",submitRoutes);
+  app.use("/user",userRoutes);
+  app.use("/potd",potdRoutes);
+  app.use("/potd/admin",potdAdmin);
   app.use((_req, res) => res.status(404).json({ error: "Not found" }));
   schedulePotdJob();
   const port = Number(process.env.PORT || 4000);
