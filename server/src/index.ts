@@ -11,16 +11,12 @@ import userRoutes from "./routes/user";
 import potdRoutes from "./routes/potd";
 import potdAdmin from "./routes/potd-admin";
 import { schedulePotdJob } from "./jobs/potdJob";
-
-(async () => {
+(async()=>{
   const MONGO_URI = process.env.MONGO_URI!;
   await mongoose.connect(MONGO_URI);
-
   const app = express();
-
-  const CLIENT_WEB = process.env.CLIENT_ORIGIN || "http://localhost:5173";
-  const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN || ""; // "chrome-extension://<id>"
-
+  const CLIENT_WEB = process.env.CLIENT_ORIGIN || "http://localhost:5173"|| "https://potd-opal.vercel.app/";
+  const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN || "";
   // CORS for web + extension
   app.use(
     cors({
