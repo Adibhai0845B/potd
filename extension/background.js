@@ -32,14 +32,16 @@ function notify(title, message) {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   (async () => {
-    const { API_BASE } = await getAllConfig();
+    const { API_BASE, apiToken } = await getAllConfig();
 
     if (msg?.type === "SUBMIT_COMPLETION") {
       try {
+        const headers = { "Content-Type": "application/json" };
+        if (apiToken) headers.Authorization = `Bearer ${apiToken}`;
         const res = await fetch(`${API_BASE}/submit`, {
           method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          credentials: apiToken ? "omit" : "include",
+          headers,
           body: JSON.stringify(msg.payload)
         });
         const data = await res.json().catch(() => ({}));
@@ -57,7 +59,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     }
 
     if (msg?.type === "GET_STATUS") {
-      sendResponse({ ok: true, API_BASE });
+      sendResponse({ ok: true, API_BASE, apiToken });
       return;
     }
 

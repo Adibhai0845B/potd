@@ -40,7 +40,6 @@ import { schedulePotdJob } from "./jobs/potdJob";
 
   const useSecure = (process.env.COOKIE_SECURE || "false") === "true";
   const sameSite = (process.env.COOKIE_SAMESITE || "none") as "lax" | "strict" | "none";
-  app.use("/potd/admin", potdAdmin);
   app.use(
     session({
       name: "sid",

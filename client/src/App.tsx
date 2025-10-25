@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import { api } from "./api/http";
 
 export default function App() {
@@ -14,6 +15,9 @@ export default function App() {
   }, []);
 
   if (loggedIn === null) return <div style={{ padding: 24 }}>Loading…</div>;
+
+  const path = window.location.pathname || "/";
+  if (path.startsWith("/reset-password")) return <ResetPassword />;
 
   return loggedIn
     ? <Dashboard onLogout={async () => { await api("/auth/logout", { method: "POST" }); setLoggedIn(false); }} />

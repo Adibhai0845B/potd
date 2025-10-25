@@ -16,4 +16,5 @@ document.getElementById("openApp").addEventListener("click", async () => {
 chrome.runtime.sendMessage({ type: "GET_STATUS" }, (resp) => {
   if (!resp?.ok) { set("api", "n/a", "warn"); return; }
   set("api", resp.API_BASE, "ok");
+  set("token", resp.apiToken ? "set" : "not set", resp.apiToken ? "ok" : "warn");
 });

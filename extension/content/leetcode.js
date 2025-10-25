@@ -1,12 +1,9 @@
 // LeetCode content script: inject external page-context hook + DOM fallback.
-
 let alreadySent = false;
-
 function getSlugFromUrl() {
   const m = location.pathname.match(/^\/problems\/([^/]+)\//);
-  return m ? m[1] : null;
+  return m?m[1]:null;
 }
-
 function sendCompletionOnce() {
   if (alreadySent) return;
   const slug = getSlugFromUrl();
@@ -17,7 +14,6 @@ function sendCompletionOnce() {
     payload: { site: "leetcode", problem: { title: "", slug } }
   });
 }
-
 // inject page-context script
 (function injectExternal() {
   const url = chrome.runtime.getURL("content/leetcode_injected.js");

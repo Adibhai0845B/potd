@@ -3,9 +3,9 @@ import Potd from "../models/Potd";
 import { getTodayKey } from "../lib/date";
 import { fetchLeetCodePotd, fetchGfgPotd } from "../services/potdSources";
 export async function refreshPotdOnce() {
-  const date = getTodayKey(); // uses Asia/Kolkata from env (or default)
-  const results: {
-    leetcode?: { title: string; slug: string };
+  const date=getTodayKey();
+  const results:{
+    leetcode?:{ title: string; slug: string };
     gfg?: { title: string; slug: string };
   } = {};
 

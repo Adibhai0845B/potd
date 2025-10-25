@@ -2,15 +2,10 @@ import { Router } from "express";
 import Potd from "../models/Potd";
 import { getTodayKey } from "../lib/date";
 import { refreshPotdOnce } from "../jobs/potdJob";
-
 const r = Router();
-
-/** GET /potd/today -> { date, leetcode, gfg } */
 r.get("/today", async (_req, res) => {
   const date = getTodayKey();
   let doc = await Potd.findOne({ date }).lean();
-
-  // Always try a fresh fetch if missing or partial
   if (!doc || (!doc.leetcode && !doc.gfg)) {
     try {
       console.log(`[POTD] /today endpoint: missing or partial for ${date}, forcing refresh...`);
@@ -28,5 +23,4 @@ r.get("/today", async (_req, res) => {
   }
   res.json({ date, leetcode: doc.leetcode, gfg: doc.gfg });
 });
-
 export default r;

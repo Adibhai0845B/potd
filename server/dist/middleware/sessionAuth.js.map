@@ -1,0 +1,1 @@
+{"version":3,"file":"sessionAuth.js","sourceRoot":"","sources":["../../src/middleware/sessionAuth.ts"],"names":[],"mappings":";;AAEA,0CAIC;AAJD,SAAgB,eAAe,CAAC,GAAY,EAAE,GAAa,EAAE,IAAkB;IAC7E,aAAa;IACb,IAAI,CAAC,GAAG,CAAC,OAAO,EAAE,MAAM;QAAE,OAAO,GAAG,CAAC,MAAM,CAAC,GAAG,CAAC,CAAC,IAAI,CAAC,EAAE,KAAK,EAAE,cAAc,EAAE,CAAC,CAAC;IACjF,IAAI,EAAE,CAAC;AACT,CAAC"}

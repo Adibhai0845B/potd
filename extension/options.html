@@ -7,6 +7,14 @@
 <body>
   <h2>POTD – Options</h2>
   <label>API Base URL</label><input id="api" placeholder="http://localhost:4000" />
+  <label>API Token (optional, for extension submissions)</label><input id="token" placeholder="paste token here or generate from web app" />
+  <div style="margin-top:8px;padding:8px;border:1px solid #eee;border-radius:6px">
+    <div style="font-size:13px;margin-bottom:6px">Or generate a token using your account (email + password)</div>
+    <label>Email</label><input id="loginEmail" placeholder="you@example.com" />
+    <label>Password</label><input id="loginPassword" type="password" placeholder="your password" />
+    <button id="getToken" style="margin-top:8px;padding:8px 12px">Get token</button>
+    <div id="tokenResult" style="margin-top:8px;font-size:13px;color:#333"></div>
+  </div>
   <label>Allowed App Origins (comma separated)</label><input id="origins" placeholder="http://localhost:5173" />
   <button id="save">Save</button>
   <script src="options.js"></script>

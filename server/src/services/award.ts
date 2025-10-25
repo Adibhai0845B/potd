@@ -13,8 +13,21 @@ export async function recordCompletionAndAward(
   if (!potd || !potd[site] || !potd[site].slug) throw new Error("POTD not ready");
   const todaysSlug = normalizeSlug(site, potd[site].slug);
   const submittedSlug = normalizeSlug(site, problem.slug);
+  // Exact match first
   if (todaysSlug !== submittedSlug) {
-    throw new Error(`Not the POTD (${site}): expected ${todaysSlug}, got ${submittedSlug}`);
+    // Allow more permissive matching for GFG because their URL/slug patterns
+    // sometimes include extra segments or slightly different forms.
+    if (site === "gfg") {
+      const a = todaysSlug || "";
+      const b = submittedSlug || "";
+      const permissive = a.includes(b) || b.includes(a) || a.endsWith(b) || b.endsWith(a);
+      if (!permissive) {
+        console.warn(`[AWARD] GFG slug mismatch: expected='${todaysSlug}' submitted='${submittedSlug}'`);
+        throw new Error(`Not the POTD (gfg): expected ${todaysSlug}, got ${submittedSlug}`);
+      }
+    } else {
+      throw new Error(`Not the POTD (${site}): expected ${todaysSlug}, got ${submittedSlug}`);
+    }
   }
 
   const created = await Completion.findOneAndUpdate(

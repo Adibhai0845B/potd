@@ -1,7 +1,8 @@
 import axios from "axios";
 
-// Fetch recent submissions for a LeetCode user using the public GraphQL API
 export async function fetchLeetCodeSubmissions(username: string) {
+  const user = (username || "").toString().trim();
+  if (!user) return [];
   const url = "https://leetcode.com/graphql";
   const payload = {
     query: `
@@ -26,6 +27,6 @@ export async function fetchLeetCodeSubmissions(username: string) {
     validateStatus: () => true,
   });
   const list = res.data?.data?.recentAcSubmissionList || [];
-  // Return array of { slug, status }
-  return list.map((item: any) => ({ slug: item.titleSlug, status: "Accepted" }));
+  // Return array of { slug, status, timestamp }
+  return list.map((item: any) => ({ slug: item.titleSlug, status: "Accepted", timestamp: item.timestamp }));
 }

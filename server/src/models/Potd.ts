@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 const potdSchema=new Schema({
-  date: { type: String, index: true },
+  date: { type: String },
   leetcode: { title: String, slug: String },
   gfg: { title: String, slug: String }
 }, { timestamps: true });

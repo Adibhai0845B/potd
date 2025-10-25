@@ -1,11 +1,12 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
+import GfgPotdMap from "../models/GfgPotdMap";
 
 export async function fetchLeetCodePotd() {
   const url = "https://leetcode.com/graphql";
-  const payload = {
-    query: `
-      query questionOfToday {
+  const payload={
+    query:`
+      query questionOfToday{
         activeDailyCodingChallengeQuestion {
           date
           link
@@ -14,8 +15,7 @@ export async function fetchLeetCodePotd() {
       }
     `
   };
-  const res = await axios.post(url, payload, {
-    headers: {
+  const res = await axios.post(url,payload,{headers:{
       "Content-Type": "application/json",
       "Origin": "https://leetcode.com",
       "Referer": "https://leetcode.com"
@@ -68,8 +68,38 @@ export async function fetchGfgPotd() {
           const $p = cheerio.load(probHtml.data);
           const h1 = $p("h1, h2").first().text().trim();
           if (h1) title = h1.replace(/\s*-\s*GeeksforGeeks\s*$/, "");
-        } catch {}
-        if (slug) return { title, slug };
+
+          // If the `first` candidate is an article (e.g. /problem-of-the-day/), try to
+          // find the actual problem link inside the article page. Prefer links matching
+          // /problems/<slug>/ or /practice/<slug>/ patterns.
+          const innerLinks: string[] = [];
+          $p("a[href]").each((_i, el) => {
+            const href = ($p(el).attr("href") || "").toString();
+            if (!href) return;
+            if (/\/problems\/[a-z0-9\-]+\//i.test(href) || /\/practice\/[a-z0-9\-]+\//i.test(href) || /geeksforgeeks\.org\/problems\/[a-z0-9\-]+\//i.test(href)) {
+              innerLinks.push(href);
+            }
+          });
+          if (innerLinks.length) {
+            const chosen = String(innerLinks[0]);
+            const uu = new URL(chosen, u.toString());
+            const pparts = uu.pathname.split("/").filter(Boolean);
+            const probSlug = pparts[pparts.length - 1];
+            if (probSlug) return { title: title || "GFG POTD", slug: probSlug };
+          }
+        }catch(e){
+          // ignore
+}
+        if(slug){
+          try{
+        const existing = await (GfgPotdMap as any).findOne({ articleSlug: slug }).exec();
+         if(existing&&existing.problemSlug){
+              return{title: existing.title||title, slug: existing.problemSlug };
+          }
+          }catch(err){//ignore DB errors and fall back
+            }
+          return { title, slug };
+        }
       }
     } catch {}
   }

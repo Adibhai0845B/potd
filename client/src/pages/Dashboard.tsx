@@ -2,19 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/http";
 import { getTodayPotd, type Potd } from "../api/potd";
 import "./Dashboard.css";
-
-type Props = { onLogout: () => void };
-
+type Props = {onLogout:()=>void};
 type Completion = {
-  site: "leetcode" | "gfg";
-  date: string;
+  site:"leetcode"|"gfg";
+  date:string;
   problemSlug: string;
   problemTitle?: string;
 };
-
 type MeResp = {
   user: {
-    email: string;
+  email: string;
     username?: string;
     coins: number;
     streak: number;
@@ -22,14 +19,11 @@ type MeResp = {
     leetcodeUsername?: string;
     gfgUsername?: string;
   };
-  today: string;
-  completions: Completion[];
+today: string;
+completions: Completion[];
 };
-
 type Toast = { id: number; kind: "success" | "error" | "info"; text: string };
-
 export default function Dashboard({ onLogout }: Props) {
-  // Profile form state
   const [leetcodeUsername, setLeetcodeUsername] = useState("");
   const [gfgUsername, setGfgUsername] = useState("");
   const [profileLoading, setProfileLoading] = useState(false);
@@ -38,9 +32,8 @@ export default function Dashboard({ onLogout }: Props) {
   const [loading, setLoading] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-
-  // When user data loads, set profile fields
-  useEffect(() => {
+  const [checking, setChecking] = useState<{ leetcode: boolean; gfg: boolean }>({ leetcode: false, gfg: false });
+  useEffect(()=>{
     if (me?.user) {
       setLeetcodeUsername(me.user.leetcodeUsername || "");
       setGfgUsername(me.user.gfgUsername || "");
@@ -77,44 +70,19 @@ export default function Dashboard({ onLogout }: Props) {
       ]);
       setMe(meResp);
       setPotd(potdResp);
-
-      // Automatically mark as done for LeetCode
-      if (potdResp?.leetcode && !meResp.completions.some(c => c.site === "leetcode")) {
-        await markDone("leetcode", potdResp.leetcode.slug, potdResp.leetcode.title);
-      }
-      // Automatically mark as done for GFG
-      if (potdResp?.gfg && !meResp.completions.some(c => c.site === "gfg")) {
-        await markDone("gfg", potdResp.gfg.slug, potdResp.gfg.title);
-      }
-    } catch (e: any) {
-      pushToast("error", e?.message || "Failed to load");
-    } finally {
+    }catch (e: any) {
+  pushToast("error", e?.message || "Failed to load");
+    }finally {
       setLoading(false);
     }
   }
-
-  async function markDone(site: "leetcode" | "gfg", slug: string, title: string) {
-    try {
-      await api("/submit", {
-        method: "POST",
-        body: JSON.stringify({ site, problem: { slug, title } }),
-      });
-      pushToast("success", `Marked ${site.toUpperCase()} POTD as done!`);
-      await loadAll();
-    } catch (e: any) {
-      pushToast("error", e?.message || "Could not mark as done");
-    }
-  }
-
   function pushToast(kind: Toast["kind"], text: string) {
     const id = Date.now() + Math.random();
-    setToasts((t) => [...t, { id, kind, text }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3000);
+    setToasts((t)=>[...t, { id, kind, text }]);
+    setTimeout(()=>setToasts((t) => t.filter((x) => x.id !== id)), 3000);
   }
-
   const doneLC = useMemo(() => me?.completions?.some((c) => c.site === "leetcode") ?? false, [me]);
   const doneGFG = useMemo(() => me?.completions?.some((c) => c.site === "gfg") ?? false, [me]);
-
   return (
     <div className="dash-root">
       <header className="dash-header">
@@ -156,9 +124,9 @@ export default function Dashboard({ onLogout }: Props) {
                   onChange={e => setLeetcodeUsername(e.target.value)}
                   placeholder="LeetCode username"
                   style={{ width: "100%" }}
-                  autoComplete="username"
-                />
+                  autoComplete="username"/>
               </label>
+              
               <label>
                 GFG Username:
                 <input
@@ -180,25 +148,52 @@ export default function Dashboard({ onLogout }: Props) {
             <StreakRing streak={me.user.streak} />
             <StatCard label="Today" value={me.today} mono />
           </section>
-
           <section className="cards">
             <PlatformCard
               platform="LeetCode"
               done={doneLC}
               potd={potd?.leetcode}
+                linkedUsername={me?.user?.leetcodeUsername}
               onOpen={() =>
                 potd?.leetcode &&
                 window.open(`https://leetcode.com/problems/${potd.leetcode.slug}/`, "_blank", "noopener,noreferrer")
               }
+              checking={checking.leetcode}
+              onCheck={async () => {
+                if (!potd?.leetcode) return;
+                setChecking((c) => ({ ...c, leetcode: true }));
+                try {
+                  const res = await api('/submit/check-and-award', { method: 'POST', body: JSON.stringify({ site: 'leetcode' }) });
+                  pushToast('success', (res as any).awarded ? 'Awarded! +10 coins' : ((res as any).message || 'No award'));
+                  await loadAll();
+                } catch (e: any) {
+                  pushToast('error', e?.message || 'Could not check/award');
+                } finally {
+                  setChecking((c) => ({ ...c, leetcode: false }));
+                }
+              }}
             />
-            <PlatformCard
-              platform="GFG"
-              done={doneGFG}
+            <PlatformCard platform="GFG" done={doneGFG}
               potd={potd?.gfg}
+              linkedUsername={me?.user?.gfgUsername}
               onOpen={() =>
                 potd?.gfg &&
                 window.open(`https://www.geeksforgeeks.org/${potd.gfg.slug}/`, "_blank", "noopener,noreferrer")
               }
+              checking={checking.gfg}
+              onCheck={async () => {
+                if (!potd?.gfg) return;
+                setChecking((c) => ({ ...c, gfg: true }));
+                try {
+                  const res = await api('/submit/check-and-award', { method: 'POST', body: JSON.stringify({ site: 'gfg' }) });
+                  pushToast('success', (res as any).awarded ? 'Awarded! +10 coins' : ((res as any).message || 'No award'));
+                  await loadAll();
+                } catch (e: any) {
+                  pushToast('error', e?.message || 'Could not check/award');
+                } finally {
+                  setChecking((c) => ({ ...c, gfg: false }));
+                }
+              }}
             />
           </section>
 
@@ -231,9 +226,6 @@ export default function Dashboard({ onLogout }: Props) {
     </div>
   );
 }
-
-/* ---------------- Components ---------------- */
-
 function Skeleton() {
   return (
     <div className="skeleton">
@@ -261,7 +253,6 @@ function StatCard({ label, value, mono = false }: { label: string; value: string
 }
 
 function StreakRing({ streak }: { streak: number }) {
-  // cap the ring fill to a reasonable window (e.g., 30)
   const cap = 30;
   const pct = Math.min(100, Math.round((Math.min(streak, cap) / cap) * 100));
   const style = { ["--fill" as any]: `${pct}%` };
@@ -283,11 +274,17 @@ function PlatformCard({
   potd,
   done,
   onOpen,
+  onCheck,
+  checking,
+  linkedUsername,
 }: {
   platform: "LeetCode" | "GFG";
   potd?: { title: string; slug: string };
   done: boolean;
   onOpen: () => void;
+  onCheck?: () => Promise<void>;
+  checking?: boolean;
+  linkedUsername?: string | null;
 }) {
   return (
     <div className="card glass">
@@ -306,6 +303,16 @@ function PlatformCard({
           <button className="btn ghost" onClick={onOpen} disabled={!potd}>
             Open
           </button>
+          {onCheck && (
+            <button className="btn" onClick={onCheck} disabled={!potd || !!checking || !linkedUsername} style={{ marginLeft: 8 }}>
+              {checking ? 'Checking…' : 'Check & Award'}
+            </button>
+          )}
+          {!linkedUsername && (
+            <div style={{ marginTop: 8, color: '#666', fontSize: 12 }}>
+              Link your {platform} username in Profile to enable checking.
+            </div>
+          )}
         </div>
       </div>
       {potd && (
