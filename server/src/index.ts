@@ -15,8 +15,8 @@ import { schedulePotdJob } from "./jobs/potdJob";
   const MONGO_URI = process.env.MONGO_URI!;
   await mongoose.connect(MONGO_URI);
   const app = express();
-  const CLIENT_WEB = process.env.CLIENT_ORIGIN || "http://localhost:5173"|| "https://potd-opal.vercel.app/";
-  const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN || "";
+  const CLIENT_WEB = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+  const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN || "https://potd-opal.vercel.app";
   // CORS for web + extension
   app.use(
     cors({
@@ -46,7 +46,7 @@ import { schedulePotdJob } from "./jobs/potdJob";
       cookie: {
         httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 30,
-       sameSite,       // "none" for extension background requests
+       sameSite,    
         secure: useSecure,
       },
     })
