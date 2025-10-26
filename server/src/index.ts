@@ -15,13 +15,13 @@ import { schedulePotdJob } from "./jobs/potdJob";
   const MONGO_URI = process.env.MONGO_URI!;
   await mongoose.connect(MONGO_URI);
   const app = express();
-  // CORS for web + extension
+  // CORSforweb+extension
   app.use(
     cors({
-      origin: (origin, cb) => {
-        if (!origin) return cb(null, true);
-        if (origin.startsWith("chrome-extension://")) return cb(null, true);
-        const allowed = ["http://localhost:5173", "https://potd-opal.vercel.app"];
+      origin:(origin,cb)=>{
+      if(!origin) return cb(null, true);
+        if(origin.startsWith("chrome-extension://")) return cb(null, true);
+        const allowed = ["http://localhost:5173", "http://localhost:5174", "https://potd-opal.vercel.app"];
         const CLIENT_WEB = process.env.CLIENT_ORIGIN;
         const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN;
         if (CLIENT_WEB) allowed.push(CLIENT_WEB);
@@ -37,6 +37,7 @@ import { schedulePotdJob } from "./jobs/potdJob";
 
   const useSecure = (process.env.COOKIE_SECURE || "false") === "true";
   const sameSite = (process.env.COOKIE_SAMESITE || "none") as "lax" | "strict" | "none";
+  // In production (e.g., Render), set COOKIE_SECURE=true and COOKIE_SAMESITE=none for cross-origin cookies
   app.use(
     session({
       name: "sid",
