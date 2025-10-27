@@ -31,7 +31,7 @@ export default function ResetPassword(){
         <label>Token</label>
         <input value={token} onChange={e=>setToken(e.target.value)} style={{ width: '100%', marginBottom: 8 }} />
         <label>New password</label>
-        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} style={{ width: '100%', marginBottom: 12 }} />
+        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} style={{ width: '100%', marginBottom: 12 }} autoComplete="new-password" />
         <button disabled={loading}>{loading ? 'Please wait…' : 'Reset Password'}</button>
       </form>
       {message && <p style={{ color: message.includes('successful') ? 'green' : 'crimson' }}>{message}</p>}

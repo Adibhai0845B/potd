@@ -1,4 +1,4 @@
-const BASE = 'https://potdback.onrender.com';
+const BASE = import.meta.env.DEV ? '/api' : 'https://potdback.onrender.com';
 
 export async function api<T = any>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {

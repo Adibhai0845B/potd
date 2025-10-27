@@ -1,7 +1,3 @@
-# Implement Username Locking After Earning Points
-
-## Tasks
-- [ ] Update Completion model to include platformUsername field
-- [ ] Modify award.ts to populate platformUsername when recording completion
-- [ ] Add validation in user.ts PATCH /profile to prevent username changes if completions exist with current username
-- [ ] Test the functionality to ensure usernames are locked after first award
+- [x] Update client/src/api/http.ts to use dynamic BASE URL for development (use '/api' proxy) and production (render URL)
+- [x] Add autocomplete attributes to input fields in client/src/pages/Auth.tsx (email: "email", password: "current-password" for login, "new-password" for register)
+- [x] Add autocomplete attribute to password input in client/src/pages/ResetPassword.tsx ("new-password")

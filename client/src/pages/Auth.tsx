@@ -26,9 +26,9 @@ export default function Auth({ onAuth }: Props) {
       <h2>{mode === "login" ? "Login" : "Register"}</h2>
       <form onSubmit={onSubmit}>
         <label>Email</label>
-        <input type="email" value={email} onChange={e=>setEmail(e.target.value)} required style={{ width: "100%", marginBottom: 12 }} />
+        <input type="email" value={email} onChange={e=>setEmail(e.target.value)} required style={{ width: "100%", marginBottom: 12 }} autoComplete="email" />
         <label>Password</label>
-        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} required style={{ width: "100%", marginBottom: 12 }} />
+        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} required style={{ width: "100%", marginBottom: 12 }} autoComplete={mode === "login" ? "current-password" : "new-password"} />
         <div style={{ display: "flex", gap: 8 }}>
           <button type="submit" disabled={loading}>{loading ? "Please wait…" : (mode === "login" ? "Login" : "Register")}</button>
           <button type="button" onClick={() => setMode(mode === "login" ? "register" : "login")}>Switch to {mode === "login" ? "register" : "login"}</button>
