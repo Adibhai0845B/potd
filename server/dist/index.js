@@ -53,16 +53,19 @@ const potdJob_1 = require("./jobs/potdJob");
     const MONGO_URI = process.env.MONGO_URI;
     await mongoose_1.default.connect(MONGO_URI);
     const app = (0, express_1.default)();
-    const CLIENT_WEB = process.env.CLIENT_ORIGIN || "http://localhost:5173";
-    const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN || ""; // "chrome-extension://<id>"
-    // CORS for web + extension
+    app.set('trust proxy', 1);
+    // CORSforweb+extension
     app.use((0, cors_1.default)({
         origin: (origin, cb) => {
             if (!origin)
                 return cb(null, true);
             if (origin.startsWith("chrome-extension://"))
                 return cb(null, true);
-            const allowed = [CLIENT_WEB];
+            const allowed = ["http://localhost:5173", "http://localhost:5174", "https://potd-opal.vercel.app"];
+            const CLIENT_WEB = process.env.CLIENT_ORIGIN;
+            const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN;
+            if (CLIENT_WEB)
+                allowed.push(CLIENT_WEB);
             if (EXTENSION_ORIGIN)
                 allowed.push(EXTENSION_ORIGIN);
             if (allowed.includes(origin))
@@ -72,7 +75,9 @@ const potdJob_1 = require("./jobs/potdJob");
         credentials: true,
     }));
     app.use(express_1.default.json());
-    const useSecure = (process.env.COOKIE_SECURE || "false") === "true";
+    // For production on Render, set COOKIE_SECURE=true and COOKIE_SAMESITE=none
+    // CLIENT_ORIGIN=https://potd-opal.vercel.app
+    const useSecure = (process.env.COOKIE_SECURE || "true") === "true";
     const sameSite = (process.env.COOKIE_SAMESITE || "none");
     app.use((0, express_session_1.default)({
         name: "sid",
@@ -83,7 +88,7 @@ const potdJob_1 = require("./jobs/potdJob");
         cookie: {
             httpOnly: true,
             maxAge: 1000 * 60 * 60 * 24 * 30,
-            sameSite, // "none" for extension background requests
+            sameSite,
             secure: useSecure,
         },
     }));

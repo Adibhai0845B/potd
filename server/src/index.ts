@@ -15,6 +15,7 @@ import { schedulePotdJob } from "./jobs/potdJob";
   const MONGO_URI = process.env.MONGO_URI!;
   await mongoose.connect(MONGO_URI);
   const app = express();
+  app.set('trust proxy', 1);
   // CORSforweb+extension
   app.use(
     cors({
@@ -37,7 +38,7 @@ import { schedulePotdJob } from "./jobs/potdJob";
 
   // For production on Render, set COOKIE_SECURE=true and COOKIE_SAMESITE=none
   // CLIENT_ORIGIN=https://potd-opal.vercel.app
-  const useSecure = (process.env.COOKIE_SECURE || (process.env.NODE_ENV === "production" ? "true" : "false")) === "true";
+  const useSecure = (process.env.COOKIE_SECURE || "true") === "true";
   const sameSite = (process.env.COOKIE_SAMESITE || "none") as "lax" | "strict" | "none";
   app.use(
     session({

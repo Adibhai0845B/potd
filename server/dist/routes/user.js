@@ -10,14 +10,14 @@ const Completion_1 = __importDefault(require("../models/Completion"));
 const date_1 = require("../lib/date");
 const r = (0, express_1.Router)();
 r.get("/me", sessionAuth_1.sessionRequired, async (req, res) => {
-    // @ts-ignore
+    //@ts-ignore
     const userId = req.session.userId;
     const user = await User_1.default.findById(userId, "email username leetcodeUsername gfgUsername coins streak lastStreakDay").lean();
     const today = (0, date_1.getTodayKey)();
     const completions = await Completion_1.default.find({ userId, date: today }).lean();
     res.json({ user, today, completions });
 });
-// PATCH /user/profile - update LeetCode/GFG usernames
+//PATCH /user/profile-update LeetCode/GFG usernames
 r.patch("/profile", sessionAuth_1.sessionRequired, async (req, res) => {
     // @ts-ignore
     const userId = req.session.userId;
