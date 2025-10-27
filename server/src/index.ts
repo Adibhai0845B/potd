@@ -35,9 +35,10 @@ import { schedulePotdJob } from "./jobs/potdJob";
 
   app.use(express.json());
 
-  const useSecure = (process.env.COOKIE_SECURE || "false") === "true";
+  // For production on Render, set COOKIE_SECURE=true and COOKIE_SAMESITE=none
+  // CLIENT_ORIGIN=https://potd-opal.vercel.app
+  const useSecure = (process.env.COOKIE_SECURE || (process.env.NODE_ENV === "production" ? "true" : "false")) === "true";
   const sameSite = (process.env.COOKIE_SAMESITE || "none") as "lax" | "strict" | "none";
-  // In production (e.g., Render), set COOKIE_SECURE=true and COOKIE_SAMESITE=none for cross-origin cookies
   app.use(
     session({
       name: "sid",
