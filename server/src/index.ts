@@ -38,8 +38,8 @@ import { schedulePotdJob } from "./jobs/potdJob";
 
   // For production on Render, set COOKIE_SECURE=true and COOKIE_SAMESITE=none
   // CLIENT_ORIGIN=https://potd-opal.vercel.app
-  const useSecure = (process.env.COOKIE_SECURE || "true") === "true";
-  const sameSite = (process.env.COOKIE_SAMESITE || "none") as "lax" | "strict" | "none";
+  const useSecure = process.env.COOKIE_SECURE === "true";
+  const sameSite = (process.env.COOKIE_SAMESITE || "lax") as "lax" | "strict" | "none";
   app.use(
     session({
       name: "sid",
@@ -49,9 +49,10 @@ import { schedulePotdJob } from "./jobs/potdJob";
       store: MongoStore.create({ mongoUrl: MONGO_URI, ttl: 60 * 60 * 24 * 30 }),
       cookie: {
         httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24 * 30,
-       sameSite,    
+        maxAge: 1000 * 60 * 60 * 24 * 30,
+        sameSite,
         secure: useSecure,
+        domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
       },
     })
   );

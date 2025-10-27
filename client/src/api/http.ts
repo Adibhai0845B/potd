@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : 'https://potdback.onrender.com');
+const BASE = 'https://potdback.onrender.com';
 
 export async function api<T = any>(path: string, opts: RequestInit = {}): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
