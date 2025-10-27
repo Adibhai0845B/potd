@@ -22,7 +22,7 @@ import { schedulePotdJob } from "./jobs/potdJob";
       origin:(origin,cb)=>{
       if(!origin) return cb(null, true);
         if(origin.startsWith("chrome-extension://")) return cb(null, true);
-        const allowed = ["http://localhost:5173", "http://localhost:5174", "https://potd-opal.vercel.app"];
+        const allowed = ["http://localhost:5173", "http://localhost:5174", "https://potd-opal.vercel.app", "https://potd-rfnh0tpxi-aditya-krishna-guptas-projects.vercel.app"];
         const CLIENT_WEB = process.env.CLIENT_ORIGIN;
         const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN;
         if (CLIENT_WEB) allowed.push(CLIENT_WEB);
