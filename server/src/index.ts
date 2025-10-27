@@ -38,8 +38,8 @@ import { schedulePotdJob } from "./jobs/potdJob";
 
   // For production on Render, set COOKIE_SECURE=true and COOKIE_SAMESITE=none
   // CLIENT_ORIGIN=https://potd-opal.vercel.app
-  const useSecure = process.env.COOKIE_SECURE === "true";
-  const sameSite = (process.env.COOKIE_SAMESITE || "lax") as "lax" | "strict" | "none";
+  const useSecure = process.env.NODE_ENV === "production" || process.env.COOKIE_SECURE === "true";
+  const sameSite = (process.env.NODE_ENV === "production" ? "none" : process.env.COOKIE_SAMESITE || "lax") as "lax" | "strict" | "none";
   app.use(
     session({
       name: "sid",
@@ -53,6 +53,7 @@ import { schedulePotdJob } from "./jobs/potdJob";
         sameSite,
         secure: useSecure,
         domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
+        path: "/",
       },
     })
   );

@@ -77,8 +77,8 @@ const potdJob_1 = require("./jobs/potdJob");
     app.use(express_1.default.json());
     // For production on Render, set COOKIE_SECURE=true and COOKIE_SAMESITE=none
     // CLIENT_ORIGIN=https://potd-opal.vercel.app
-    const useSecure = (process.env.COOKIE_SECURE || "true") === "true";
-    const sameSite = (process.env.COOKIE_SAMESITE || "none");
+    const useSecure = process.env.NODE_ENV === "production" || process.env.COOKIE_SECURE === "true";
+    const sameSite = (process.env.NODE_ENV === "production" ? "none" : process.env.COOKIE_SAMESITE || "lax");
     app.use((0, express_session_1.default)({
         name: "sid",
         secret: process.env.SESSION_SECRET || "change_me",
@@ -90,6 +90,8 @@ const potdJob_1 = require("./jobs/potdJob");
             maxAge: 1000 * 60 * 60 * 24 * 30,
             sameSite,
             secure: useSecure,
+            domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
+            path: "/",
         },
     }));
     app.get("/health", (_req, res) => res.json({ ok: true }));
