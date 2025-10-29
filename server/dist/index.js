@@ -55,22 +55,22 @@ const potdJob_1 = require("./jobs/potdJob");
     const app = (0, express_1.default)();
     app.set('trust proxy', 1);
     // CORSforweb+extension
+    const allowedOrigins = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://potd-opal.vercel.app",
+        "https://potd-rfnh0tpxi-aditya-krishna-guptas-projects.vercel.app",
+        process.env.CLIENT_ORIGIN,
+        process.env.EXTENSION_ORIGIN,
+    ].filter(Boolean);
     app.use((0, cors_1.default)({
-        origin: (origin, cb) => {
-            if (!origin)
-                return cb(null, true);
-            if (origin.startsWith("chrome-extension://"))
-                return cb(null, true);
-            const allowed = ["http://localhost:5173", "http://localhost:5174", "https://potd-opal.vercel.app", "https://potd-rfnh0tpxi-aditya-krishna-guptas-projects.vercel.app"];
-            const CLIENT_WEB = process.env.CLIENT_ORIGIN;
-            const EXTENSION_ORIGIN = process.env.EXTENSION_ORIGIN;
-            if (CLIENT_WEB)
-                allowed.push(CLIENT_WEB);
-            if (EXTENSION_ORIGIN)
-                allowed.push(EXTENSION_ORIGIN);
-            if (allowed.includes(origin))
-                return cb(null, true);
-            return cb(null, false);
+        origin: (origin, callback) => {
+            if (!origin || allowedOrigins.includes(origin) || origin.startsWith("chrome-extension://")) {
+                callback(null, true);
+            }
+            else {
+                callback(new Error("Not allowed by CORS"));
+            }
         },
         credentials: true,
     }));
