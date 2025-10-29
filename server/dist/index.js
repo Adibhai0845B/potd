@@ -90,7 +90,7 @@ const potdJob_1 = require("./jobs/potdJob");
             maxAge: 1000 * 60 * 60 * 24 * 30,
             sameSite,
             secure: useSecure,
-            domain: undefined,
+            domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
             path: "/",
         },
     }));
