@@ -56,7 +56,7 @@ import { schedulePotdJob } from "./jobs/potdJob";
         maxAge: 1000 * 60 * 60 * 24 * 30,
         sameSite,
         secure: useSecure,
-        domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
+        domain: undefined,
         path: "/",
       },
     })
