@@ -13,7 +13,16 @@ import potdAdmin from "./routes/potd-admin";
 import { schedulePotdJob } from "./jobs/potdJob";
 (async()=>{
   const MONGO_URI = process.env.MONGO_URI!;
-  await mongoose.connect(MONGO_URI);
+     await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 10000, // 10s instead of 30s default
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+      family: 4, // force IPv4 (avoids IPv6 DNS edge cases)
+      maxPoolSize: 10,
+      
+      keepAliveInitialDelay: 300000,
+    });
+    console.log("✅ MongoDB connected");
   const app = express();
   app.set('trust proxy', 1);
   // CORSforweb+extension
@@ -67,6 +76,7 @@ import { schedulePotdJob } from "./jobs/potdJob";
   app.use("/user",userRoutes);
   app.use("/potd",potdRoutes);
   app.use("/potd/admin",potdAdmin);
+  app.use("/",(_req,res) => res.json({message:"server is up!!"}))
   app.use((_req, res) => res.status(404).json({ error: "Not found" }));
   schedulePotdJob();
   const port = Number(process.env.PORT || 4000);
