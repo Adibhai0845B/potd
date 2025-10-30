@@ -146,7 +146,9 @@ export default function Dashboard({ onLogout }: Props) {
             <StatCard label="Today" value={me.today} mono />
           </section>
           <section className="gifts glass">
-            <p>Gifts based on coins will be revealed soon. Stay connected and enjoy problem solving!</p>
+            <div className="gifts-emoji">🎁</div>
+            <h3 className="gifts-title">Gifts Coming Soon!</h3>
+            <p className="gifts-message">Gifts based on coins will be revealed soon. Stay connected and enjoy problem solving!</p>
           </section>
           <section className="cards">
             <PlatformCard
