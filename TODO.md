@@ -1,3 +1,0 @@
-- [x] Update client/src/api/http.ts to use dynamic BASE URL for development (use '/api' proxy) and production (render URL)
-- [x] Add autocomplete attributes to input fields in client/src/pages/Auth.tsx (email: "email", password: "current-password" for login, "new-password" for register)
-- [x] Add autocomplete attribute to password input in client/src/pages/ResetPassword.tsx ("new-password")
