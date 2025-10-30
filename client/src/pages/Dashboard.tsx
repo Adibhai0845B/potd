@@ -145,6 +145,9 @@ export default function Dashboard({ onLogout }: Props) {
             <StreakRing streak={me.user.streak} />
             <StatCard label="Today" value={me.today} mono />
           </section>
+          <section className="gifts glass">
+            <p>Gifts based on coins will be revealed soon. Stay connected and enjoy problem solving!</p>
+          </section>
           <section className="cards">
             <PlatformCard
               platform="LeetCode"

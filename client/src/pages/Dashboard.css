@@ -89,6 +89,16 @@ body, #root { background: var(--bg); color: var(--text); }
   .stats { grid-template-columns: 1fr; }
 }
 
+/* Gifts */
+.gifts {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-top: 16px;
+  text-align: center;
+  color: var(--muted);
+}
+
 .stat-card {
   padding: 16px;
   border: 1px solid var(--border);
