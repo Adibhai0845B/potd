@@ -1,4 +1,3 @@
-// src/index.ts
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -7,8 +6,6 @@ import cors from "cors";
 import mongoose from "mongoose";
 import session from "express-session";
 import MongoStore from "connect-mongo";
-
-// ---- Your routes / jobs ----
 import authRoutes from "./routes/auth";
 import submitRoutes from "./routes/submit";
 import userRoutes from "./routes/user";
