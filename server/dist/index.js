@@ -56,12 +56,7 @@ const potdJob_1 = require("./jobs/potdJob");
     app.set('trust proxy', 1);
     // CORSforweb+extension
     const allowedOrigins = [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "https://potd-opal.vercel.app",
-        "https://potd-rfnh0tpxi-aditya-krishna-guptas-projects.vercel.app",
-        process.env.CLIENT_ORIGIN,
-        process.env.EXTENSION_ORIGIN,
+        "*"
     ].filter(Boolean);
     app.use((0, cors_1.default)({
         origin: (origin, callback) => {
@@ -90,7 +85,7 @@ const potdJob_1 = require("./jobs/potdJob");
             maxAge: 1000 * 60 * 60 * 24 * 30,
             sameSite,
             secure: useSecure,
-            domain: undefined,
+            domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
             path: "/",
         },
     }));

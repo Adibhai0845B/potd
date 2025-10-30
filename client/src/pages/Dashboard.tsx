@@ -9,7 +9,7 @@ type Completion = {
   problemSlug: string;
   problemTitle?: string;
 };
-type MeResp = {
+type MeResp={
   user: {
   email: string;
     username?: string;
@@ -56,7 +56,6 @@ export default function Dashboard({ onLogout }: Props) {
       setProfileLoading(false);
     }
   }
-
   useEffect(() => {
     void loadAll();
   }, []);
@@ -108,12 +107,10 @@ export default function Dashboard({ onLogout }: Props) {
         </div>
       </header>
 
-      {loading ? (
+  {loading?(
         <Skeleton />
-      ) : me ? (
-        <>
-          {/* Profile section */}
-          <section className="profile glass" style={{ marginBottom: 24, padding: 16, maxWidth: 400 }}>
+      ):me?(<>
+         <section className="profile glass" style={{ marginBottom: 24, padding: 16, maxWidth: 400 }}>
             <h3 style={{ margin: 0, marginBottom: 8 }}>Profile</h3>
             <form onSubmit={saveProfile} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <label>
@@ -214,9 +211,7 @@ export default function Dashboard({ onLogout }: Props) {
           onAction={() => loadAll()}
         />
       )}
-
-      {/* Toasts */}
-      <div className="toast-wrap">
+  <div className="toast-wrap">
         {toasts.map((t) => (
           <div key={t.id} className={`toast ${t.kind}`}>
             {t.text}
