@@ -51,12 +51,25 @@ const potd_admin_1 = __importDefault(require("./routes/potd-admin"));
 const potdJob_1 = require("./jobs/potdJob");
 (async () => {
     const MONGO_URI = process.env.MONGO_URI;
-    await mongoose_1.default.connect(MONGO_URI);
+    await mongoose_1.default.connect(MONGO_URI, {
+        serverSelectionTimeoutMS: 10000, // 10s instead of 30s default
+        connectTimeoutMS: 10000,
+        socketTimeoutMS: 45000,
+        family: 4, // force IPv4 (avoids IPv6 DNS edge cases)
+        maxPoolSize: 10,
+        keepAliveInitialDelay: 300000,
+    });
+    console.log("✅ MongoDB connected");
     const app = (0, express_1.default)();
     app.set('trust proxy', 1);
     // CORSforweb+extension
     const allowedOrigins = [
-        "*"
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://potd-opal.vercel.app",
+        "https://potd-rfnh0tpxi-aditya-krishna-guptas-projects.vercel.app",
+        process.env.CLIENT_ORIGIN,
+        process.env.EXTENSION_ORIGIN,
     ].filter(Boolean);
     app.use((0, cors_1.default)({
         origin: (origin, callback) => {
@@ -95,6 +108,7 @@ const potdJob_1 = require("./jobs/potdJob");
     app.use("/user", user_1.default);
     app.use("/potd", potd_1.default);
     app.use("/potd/admin", potd_admin_1.default);
+    app.use("/", (_req, res) => res.json({ message: "server is up!!" }));
     app.use((_req, res) => res.status(404).json({ error: "Not found" }));
     (0, potdJob_1.schedulePotdJob)();
     const port = Number(process.env.PORT || 4000);
