@@ -27,8 +27,7 @@ declare module "express-session" {
   if (!MONGO_URI) {
     console.error("❌ MONGO_URI not set in env");
     process.exit(1);
-  }
-
+}
   await mongoose.connect(MONGO_URI, {
     serverSelectionTimeoutMS: 10000,
     connectTimeoutMS: 10000,
