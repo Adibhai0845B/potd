@@ -8,7 +8,10 @@
    ============================== */
 
 /* ---------- Tokens (keep your palette) ---------- */
-:root {
+*{
+  margin-top: 50px;
+}
+:root{
   --bg: #0b0d10;
   --panel: rgba(255,255,255,0.06);
   --panel-strong: rgba(255,255,255,0.10);
