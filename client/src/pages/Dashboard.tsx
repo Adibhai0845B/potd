@@ -202,19 +202,19 @@ export default function Dashboard({ onLogout }: Props) {
           {!potd?.leetcode && !potd?.gfg && (
             <EmptyState
               title="No POTD right now"
-              subtitle="We couldn't fetch today's problems yet. Hit refresh or try again in a moment."
+              subtitle="We couldn't fetch today's problems yet. Hit refresh or try again in a moment or there is might some issue in this."
               actionLabel="Refresh"
               onAction={() => loadAll()}
             />
           )}
         </>
-      ) : (
-        <EmptyState
-          title="Not loaded"
-          subtitle="Could not fetch your account. Try refreshing."
-          actionLabel="Refresh"
-          onAction={() => loadAll()}
-        />
+      ):(
+    <EmptyState
+   title="Not loaded"
+       subtitle="Could not fetch your account. Try refreshing."
+      actionLabel="Refresh"
+       onAction={() => loadAll()}
+    />
       )}
   <div className="toast-wrap">
         {toasts.map((t) => (
@@ -254,21 +254,20 @@ function StatCard({ label, value, mono = false }: { label: string; value: string
 
 function StreakRing({ streak }: { streak: number }) {
   const cap = 30;
-  const pct = Math.min(100, Math.round((Math.min(streak, cap) / cap) * 100));
-  const style = { ["--fill" as any]: `${pct}%` };
-  return (
-    <div className="streak-card glass">
+  const pct = Math.min(100, Math.round((Math.min(streak,cap)/cap)*100));
+  const style = { ["--fill" as any]: `${pct}%`};
+  return( 
+      <div className="streak-card glass">
       <div className="ring" style={style as any}>
         <div className="ring-inner">
           <div className="ring-number">{streak}</div>
           <div className="ring-label">streak</div>
         </div>
       </div>
-      <div className="ring-caption">Max ring shows 30-day window</div>
+     <div className="ring-caption">Max ring shows 30-day window</div>
     </div>
   );
 }
-
 function PlatformCard({
   platform,
   potd,
@@ -309,7 +308,7 @@ function PlatformCard({
             </button>
           )}
           {!linkedUsername && (
-            <div style={{ marginTop: 8, color: '#666', fontSize: 12 }}>
+            <div style={{marginTop:8,color:'#666', fontSize: 12 }}>
               Link your {platform} username in Profile to enable checking.
             </div>
           )}
