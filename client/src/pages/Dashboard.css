@@ -8,9 +8,6 @@
    ============================== */
 
 /* ---------- Tokens (keep your palette) ---------- */
-*{
-  margin-top: 50px;
-}
 :root{
   --bg: #0b0d10;
   --panel: rgba(255,255,255,0.06);
@@ -22,6 +19,7 @@
   --brand2: #00e0c7;
   --success: #1a7f37;
   --danger: #ff4d4f;
+  margin-top: 50px;
 
   --radius-lg: 16px;
   --radius-xl: 20px;
