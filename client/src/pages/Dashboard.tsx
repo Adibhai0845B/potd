@@ -33,16 +33,22 @@ export default function Dashboard({ onLogout }: Props) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [checking, setChecking] = useState<{ leetcode: boolean; gfg: boolean }>({ leetcode: false, gfg: false });
+  const [leetcodeError, setLeetcodeError] = useState<string | null>(null);
+  const [gfgError, setGfgError] = useState<string | null>(null);
   useEffect(()=>{
     if (me?.user) {
       setLeetcodeUsername(me.user.leetcodeUsername || "");
       setGfgUsername(me.user.gfgUsername || "");
+      setLeetcodeError(null);
+      setGfgError(null);
     }
   }, [me?.user]);
 
   async function saveProfile(e?: React.FormEvent) {
     if (e) e.preventDefault();
     setProfileLoading(true);
+    setLeetcodeError(null);
+    setGfgError(null);
     try {
       await api("/user/profile", {
         method: "PATCH",
@@ -51,7 +57,14 @@ export default function Dashboard({ onLogout }: Props) {
       pushToast("success", "Profile updated!");
       await loadAll();
     } catch (e: any) {
-      pushToast("error", e?.message || "Could not update profile");
+      const errorMessage = e?.message || "Could not update profile";
+      if (errorMessage.includes("LeetCode username does not exist")) {
+        setLeetcodeError("LeetCode username does not exist");
+      } else if (errorMessage.includes("GFG username does not exist")) {
+        setGfgError("GFG username does not exist");
+      } else {
+        pushToast("error", errorMessage);
+      }
     } finally {
       setProfileLoading(false);
     }
@@ -120,10 +133,14 @@ export default function Dashboard({ onLogout }: Props) {
                 <input
                   type="text"
                   value={leetcodeUsername}
-                  onChange={e => setLeetcodeUsername(e.target.value)}
+                  onChange={e => {
+                    setLeetcodeUsername(e.target.value);
+                    setLeetcodeError(null);
+                  }}
                   placeholder="LeetCode username"
                   style={{ width: "100%" }}
                   autoComplete="username"/>
+                {leetcodeError && <div style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{leetcodeError}</div>}
               </label>
 
               <label>
@@ -131,11 +148,15 @@ export default function Dashboard({ onLogout }: Props) {
                 <input
                   type="text"
                   value={gfgUsername}
-                  onChange={e => setGfgUsername(e.target.value)}
+                  onChange={e => {
+                    setGfgUsername(e.target.value);
+                    setGfgError(null);
+                  }}
                   placeholder="GFG username"
                   style={{ width: "100%" }}
                   autoComplete="username"
                 />
+                {gfgError && <div style={{ color: 'red', fontSize: '12px', marginTop: '4px' }}>{gfgError}</div>}
               </label>
               <button className="btn" type="submit" disabled={profileLoading} style={{ marginTop: 8 }}>
                 {profileLoading ? "Saving..." : "Save Profile"}
