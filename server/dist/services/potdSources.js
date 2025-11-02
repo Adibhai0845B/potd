@@ -110,9 +110,6 @@ async function fetchGfgPotd() {
                     const h1 = $p("h1, h2").first().text().trim();
                     if (h1)
                         title = h1.replace(/\s*-\s*GeeksforGeeks\s*$/, "");
-                    // If the `first` candidate is an article (e.g. /problem-of-the-day/), try to
-                    // find the actual problem link inside the article page. Prefer links matching
-                    // /problems/<slug>/ or /practice/<slug>/ patterns.
                     const innerLinks = [];
                     $p("a[href]").each((_i, el) => {
                         const href = ($p(el).attr("href") || "").toString();
@@ -141,7 +138,7 @@ async function fetchGfgPotd() {
                             return { title: existing.title || title, slug: existing.problemSlug };
                         }
                     }
-                    catch (err) { //ignore DB errors and fall back
+                    catch (err) {
                     }
                     return { title, slug };
                 }

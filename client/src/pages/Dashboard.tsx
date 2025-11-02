@@ -56,6 +56,8 @@ export default function Dashboard({ onLogout }: Props) {
       setProfileLoading(false);
     }
   }
+
+
   useEffect(() => {
     void loadAll();
   }, []);
@@ -123,7 +125,7 @@ export default function Dashboard({ onLogout }: Props) {
                   style={{ width: "100%" }}
                   autoComplete="username"/>
               </label>
-              
+
               <label>
                 GFG Username:
                 <input

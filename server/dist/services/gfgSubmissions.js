@@ -53,7 +53,6 @@ async function fetchGfgSubmissions(username) {
         validateStatus: () => true,
     });
     const html = res.data;
-    // 1) Try to parse embedded __NEXT_DATA__ JSON (Next.js)
     try {
         const m = html.match(/<script[^>]*id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i);
         if (m && m[1]) {
@@ -78,7 +77,6 @@ async function fetchGfgSubmissions(username) {
     catch (e) {
         console.warn("[GFG] Failed to parse __NEXT_DATA__ JSON", e?.message || e);
     }
-    // 2) Fallback: legacy table scraping
     const $ = cheerio.load(html);
     const submissions = [];
     $(".score_card_table tbody tr").each((_i, el) => {

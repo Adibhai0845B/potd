@@ -33,6 +33,12 @@ r.patch("/profile",sessionRequired,async (req, res) => {
         return res.status(400).json({ error: "Cannot change LeetCode username after earning points with it" });
       }
     }
+    // Validate the new username exists
+    const { validateLeetCodeUsername } = await import("../services/validateUsernames");
+    const exists = await validateLeetCodeUsername(newLeetUsername);
+    if (!exists) {
+      return res.status(400).json({ error: "LeetCode username does not exist" });
+    }
     update.leetcodeUsername = newLeetUsername;
   }
   if (typeof gfgUsername === "string") {
@@ -44,11 +50,41 @@ r.patch("/profile",sessionRequired,async (req, res) => {
         return res.status(400).json({ error: "Cannot change GFG username after earning points with it" });
       }
     }
+    // Validate the new username exists
+    const { validateGfgUsername } = await import("../services/validateUsernames");
+    const exists = await validateGfgUsername(newGfgUsername);
+    if (!exists) {
+      return res.status(400).json({ error: "GFG username does not exist" });
+    }
     update.gfgUsername = newGfgUsername;
   }
 
   const user = await User.findByIdAndUpdate(userId, update, { new: true, fields: "email username leetcodeUsername gfgUsername coins streak lastStreakDay" }).lean();
   res.json({ user });
+});
+
+r.post("/validate-username", sessionRequired, async (req, res) => {
+  const { site, username } = req.body || {};
+  if (!site || !username || typeof username !== "string") {
+    return res.status(400).json({ error: "Site and username required" });
+  }
+  const user = username.trim();
+  if (!user) return res.json({ exists: false });
+  try {
+    const { validateLeetCodeUsername, validateGfgUsername } = await import("../services/validateUsernames");
+    let exists = false;
+    if (site === "leetcode") {
+      exists = await validateLeetCodeUsername(user);
+    } else if (site === "gfg") {
+      exists = await validateGfgUsername(user);
+    } else {
+      return res.status(400).json({ error: "Invalid site" });
+    }
+    res.json({ exists });
+  } catch (e: any) {
+    console.error("Validation error", e);
+    res.status(500).json({ error: "Validation failed" });
+  }
 });
 
 export default r;

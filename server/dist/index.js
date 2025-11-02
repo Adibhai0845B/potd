@@ -50,19 +50,26 @@ const potd_1 = __importDefault(require("./routes/potd"));
 const potd_admin_1 = __importDefault(require("./routes/potd-admin"));
 const potdJob_1 = require("./jobs/potdJob");
 (async () => {
+    // ------------------ MongoDB Connection ------------------
     const MONGO_URI = process.env.MONGO_URI;
+    if (!MONGO_URI) {
+        console.error("❌ MONGO_URI not set in env");
+        process.exit(1);
+    }
     await mongoose_1.default.connect(MONGO_URI, {
-        serverSelectionTimeoutMS: 10000, // 10s instead of 30s default
+        serverSelectionTimeoutMS: 10000,
         connectTimeoutMS: 10000,
         socketTimeoutMS: 45000,
-        family: 4, // force IPv4 (avoids IPv6 DNS edge cases)
+        family: 4,
         maxPoolSize: 10,
         keepAliveInitialDelay: 300000,
     });
     console.log("✅ MongoDB connected");
+    // ------------------ Express App ------------------
     const app = (0, express_1.default)();
-    app.set('trust proxy', 1);
-    // CORSforweb+extension
+    // Render/Vercel behind proxy (needed so secure cookies are set)
+    app.set("trust proxy", 1);
+    // ------------------ CORS ------------------
     const allowedOrigins = [
         "http://localhost:5173",
         "http://localhost:5174",
@@ -73,45 +80,76 @@ const potdJob_1 = require("./jobs/potdJob");
     ].filter(Boolean);
     app.use((0, cors_1.default)({
         origin: (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin) || origin.startsWith("chrome-extension://")) {
-                callback(null, true);
+            // allow same-origin / server-to-server (no Origin header)
+            if (!origin ||
+                allowedOrigins.includes(origin) ||
+                origin.startsWith("chrome-extension://")) {
+                return callback(null, true);
             }
-            else {
-                callback(new Error("Not allowed by CORS"));
-            }
+            return callback(new Error(`Not allowed by CORS: ${origin}`));
         },
-        credentials: true,
+        credentials: true, // allow cookies/credentials
     }));
-    app.use(express_1.default.json());
-    // For production on Render, set COOKIE_SECURE=true and COOKIE_SAMESITE=none
-    // CLIENT_ORIGIN=https://potd-opal.vercel.app
+    app.use(express_1.default.json({ limit: "1mb" }));
+    app.use(express_1.default.urlencoded({ extended: false }));
     const useSecure = process.env.NODE_ENV === "production" || process.env.COOKIE_SECURE === "true";
-    const sameSite = (process.env.NODE_ENV === "production" ? "none" : process.env.COOKIE_SAMESITE || "lax");
+    const sameSite = (process.env.NODE_ENV === "production"
+        ? "none"
+        : process.env.COOKIE_SAMESITE || "lax");
+    const sessionSecret = process.env.SESSION_SECRET || "change_me";
+    if (sessionSecret === "change_me") {
+        console.warn("⚠️  Using default SESSION_SECRET. Set SESSION_SECRET in production.");
+    }
     app.use((0, express_session_1.default)({
         name: "sid",
-        secret: process.env.SESSION_SECRET || "change_me",
+        secret: sessionSecret,
         resave: false,
         saveUninitialized: false,
-        store: connect_mongo_1.default.create({ mongoUrl: MONGO_URI, ttl: 60 * 60 * 24 * 30 }),
+        store: connect_mongo_1.default.create({
+            mongoUrl: MONGO_URI,
+            ttl: 60 * 60 * 24 * 30, // 30 days
+        }),
         cookie: {
             httpOnly: true,
-            maxAge: 1000 * 60 * 60 * 24 * 30,
-            sameSite,
-            secure: useSecure,
-            domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
+            maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
+            sameSite, // 'none' in prod
+            secure: useSecure, // true in prod
             path: "/",
+            partitioned: true,
         },
     }));
+    app.use((req, _res, next) => {
+        if (process.env.LOG_COOKIES === "true") {
+            console.log("Origin:", req.headers.origin);
+            console.log("x-forwarded-proto:", req.headers["x-forwarded-proto"]);
+            console.log("Cookie header:", req.headers.cookie);
+            // @ts-ignore
+            console.log("Session userId:", req.session?.userId);
+        }
+        next();
+    });
     app.get("/health", (_req, res) => res.json({ ok: true }));
+    app.get("/_healthz", (_req, res) => res.send("ok"));
     app.use("/auth", auth_1.default);
     app.use("/submit", submit_1.default);
     app.use("/user", user_1.default);
     app.use("/potd", potd_1.default);
     app.use("/potd/admin", potd_admin_1.default);
-    app.use("/", (_req, res) => res.json({ message: "server is up!!" }));
+    // Root
+    app.get("/", (_req, res) => res.json({ message: "server is up!!" }));
+    // 404
     app.use((_req, res) => res.status(404).json({ error: "Not found" }));
+    // Central error handler
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    app.use((err, _req, res, _next) => {
+        console.error("Unhandled error:", err);
+        res.status(500).json({ error: "Internal Server Error" });
+    });
+    // ------------------ Jobs / Server ------------------
     (0, potdJob_1.schedulePotdJob)();
     const port = Number(process.env.PORT || 4000);
-    app.listen(port, () => console.log(`Server on http://localhost:${port}`));
+    app.listen(port, () => {
+        console.log(`🚀 Server running on http://localhost:${port}`);
+    });
 })();
 //# sourceMappingURL=index.js.map

@@ -15,10 +15,7 @@ async function recordCompletionAndAward(userId, site, problem) {
         throw new Error("POTD not ready");
     const todaysSlug = (0, date_1.normalizeSlug)(site, potd[site].slug);
     const submittedSlug = (0, date_1.normalizeSlug)(site, problem.slug);
-    // Exact match first
     if (todaysSlug !== submittedSlug) {
-        // Allow more permissive matching for GFG because their URL/slug patterns
-        // sometimes include extra segments or slightly different forms.
         if (site === "gfg") {
             const a = todaysSlug || "";
             const b = submittedSlug || "";
@@ -32,7 +29,6 @@ async function recordCompletionAndAward(userId, site, problem) {
             throw new Error(`Not the POTD (${site}): expected ${todaysSlug}, got ${submittedSlug}`);
         }
     }
-    // Get the user's platform username
     const user = await User_1.default.findById(userId).lean();
     if (!user)
         throw new Error("User not found");
