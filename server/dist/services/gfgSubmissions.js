@@ -64,7 +64,7 @@ async function fetchGfgSubmissions(username) {
                     const group = userSubs[diffKey] || {};
                     for (const id of Object.keys(group)) {
                         const item = group[id];
-                        if (item && item.slug) {
+                        if (item && item.slug && item.status === "Accepted") {
                             submissions.push({ slug: item.slug, status: "Accepted" });
                         }
                     }
@@ -112,6 +112,10 @@ async function fetchGfgSubmissions(username) {
                 else
                     submissions.push({ slug: slugFound, status: "Accepted" });
             }
+        }
+        else if (/wrong/i.test(status) || /failed/i.test(status)) {
+            // Skip wrong/failed submissions
+            return;
         }
     });
     return submissions;
