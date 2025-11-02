@@ -69,14 +69,8 @@ declare module "express-session" {
       credentials: true, // allow cookies/credentials
     })
   );
-
-  // ------------------ Body Parsers ------------------
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: false }));
-
-  // ------------------ Sessions ------------------
-  // For cross-site (vercel.app -> onrender.com) you need:
-  //   SameSite=None, Secure=true, CHIPS Partitioned=true, and NO over-scoped domain.
   const useSecure =
     process.env.NODE_ENV === "production" || process.env.COOKIE_SECURE === "true";
 
@@ -110,17 +104,11 @@ declare module "express-session" {
         sameSite, // 'none' in prod
         secure: useSecure, // true in prod
         path: "/",
-        // ❗ Do NOT set 'domain' for cross-site CHIPS; keep host-only cookie
-        // domain: undefined,
-        // ✅ CHIPS for third-party cookies (Chrome/Safari 2025)
         partitioned: true,
       },
     })
   );
-
-  // ------------------ Debug / Diagnostics (optional) ------------------
   app.use((req, _res, next) => {
-    // Helpful when diagnosing 401s in prod
     if (process.env.LOG_COOKIES === "true") {
       console.log("Origin:", req.headers.origin);
       console.log("x-forwarded-proto:", req.headers["x-forwarded-proto"]);
@@ -130,12 +118,8 @@ declare module "express-session" {
     }
     next();
   });
-
-  // Simple health checks
   app.get("/health", (_req, res) => res.json({ ok: true }));
   app.get("/_healthz", (_req, res) => res.send("ok"));
-
-  // ------------------ Routes ------------------
   app.use("/auth", authRoutes);
   app.use("/submit", submitRoutes);
   app.use("/user", userRoutes);

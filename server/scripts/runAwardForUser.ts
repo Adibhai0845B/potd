@@ -13,7 +13,6 @@ async function main(){
       console.error('Usage: runAwardForUser <site> <gfgUsername|userId|email>');
       process.exit(2);
     }
-
     const site = siteArg === 'leetcode' ? 'leetcode' : 'gfg';
     let user = null as any;
   // try find by gfgUsername or leetcodeUsername or email; if identifier looks like an ObjectId, include _id

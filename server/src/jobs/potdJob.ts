@@ -17,22 +17,20 @@ export async function refreshPotdOnce() {
         console.warn("[POTD] LeetCode fetch failed:", (e as any)?.message || e);
       }
     })(),
-    (async () => {
-      try {
+    (async()=>{
+      try{
         results.gfg = await fetchGfgPotd();
       } catch (e) {
         console.warn("[POTD] GFG fetch failed:", (e as any)?.message || e);
       }
-    })(),
+  })(),
   ]);
-
   if (!results.leetcode && !results.gfg) {
     throw new Error("No POTD sources fetched");
   }
-
   await Potd.updateOne(
-    { date },
-    { $set: { date, ...results } },
+  {date},
+    {$set:{ date, ...results } },
     { upsert: true }
   );
 

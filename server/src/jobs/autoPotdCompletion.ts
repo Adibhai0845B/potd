@@ -108,9 +108,9 @@ export async function checkAndAwardPotdCompletions() {
               if (isToday) {
                 console.log(`[POTD] user=${user._id} matched gfg slug=${found.slug} (today=${isToday})`);
                 solvedPlatforms.push("gfg");
-              } else {
-                console.log(`[POTD] user=${user._id} matched gfg slug=${found.slug} but timestamp not today, skipping`);
-              }
+              }else{
+              console.log(`[POTD] user=${user._id} matched gfg slug=${found.slug} but timestamp not today, skipping`);
+          }
             } else {
               if (gfgStrict) {
                 console.log(`[POTD] user=${user._id} matched gfg slug=${found.slug} but no timestamp and GFG_STRICT=true -> skipping`);
@@ -146,12 +146,11 @@ if(!user.gfgUsername) console.log(`[POTD] user=${user._id} has no gfgUsername`);
 
     await new Promise((r) => setTimeout(r, 500));
   }
-
   console.log(`[POTD] Auto-check completed. awardedTotal=${awardedTotal}`);
 }
 const defaultCron = process.env.AUTO_POTD_CRON || "*/10 * * * *";
 cron.schedule(defaultCron, async () => {
-  try{
+try{
   await checkAndAwardPotdCompletions();
 console.log(`[POTD] Automatic completion check ran (cron=${defaultCron}).`);
   }catch(e){
